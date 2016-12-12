@@ -47,10 +47,10 @@ def Main():
             output_file.write("{}{}\n".format(parser._opcode, parser._jAddr))
         parsed = parser.advance()   
         
-        print("Current command type ->", parser._command_type)
-        print("Line number: ", parser._line_number)
-        print("valid line number: ", parser._validline_num)
-        print("-------end-------")
+        #print("Current command type ->", parser._command_type)
+        #print("Line number: ", parser._line_number)
+        #print("valid line number: ", parser._validline_num)
+        #print("-------end-------")
 
 
 if __name__ == '__main__':

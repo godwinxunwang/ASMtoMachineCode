@@ -61,7 +61,7 @@ class Parser(object):
         self._validline_num = 0
         self._rawline = None
         self._command_type = NO_COMMAND
-        self._opcode = ''
+        self._opcode = '000000'
         self._rs = ''
         self._rt = ''
         self._rd = ''
@@ -86,10 +86,9 @@ class Parser(object):
         Initially there is no current command.
         Returns True if parsing is successful and False otherwise.
         """
-        # read next line 
         self._rawline = self._file.readline()
         self._line_number += 1
-        if (self._command_type != NO_COMMAND): 
+        if (self._command_type != (NO_COMMAND or L_COMMAND)): 
             self._validline_num += 1
         newline = self._rawline.strip() #remove whitespace
         newline = newline.replace(" ", "")
@@ -112,7 +111,9 @@ class Parser(object):
                     self._jAddr = "00000000000000000000000000"
                 else: 
                     self._opcode = "001100"
-                    self._jAddr = "{0:026b}".format(int(newline[3:])) 
+                    jmpLabel = newline[3:]
+
+                    self._jAddr = "{0:026b}".format(int(jDict.get(jmpLabel)))
                 return True
                 
             elif(splitted[0] in iCommand):
@@ -137,7 +138,7 @@ class Parser(object):
             elif(":" in newline): # if is label 
                 print("hello label")
                 self._command_type = L_COMMAND
-                jDict.update({newline[:-1]:self._validline_num})
+                jDict.update({newline[:-1]:(self._validline_num-1)})
                 return True
                 
             elif(splitted[0] in rCommand):  
