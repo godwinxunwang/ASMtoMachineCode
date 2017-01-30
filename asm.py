@@ -18,8 +18,6 @@ def Main():
         FatalError("Cannot open output file " + output_filename)
         
     #code = Code()
-    parser = Parser(input_filename)
-    parsed = parser.advance()
     '''
     while parser.has_more_commands():
         if not parsed:
@@ -35,17 +33,35 @@ def Main():
     '''
     #parser._command_type = NO_COMMAND
     #print("rawline:", parser._rawline)
+    labelParser = Parser(input_filename)
+    labelParsed = labelParser.getLabel()
+    
+    while labelParser.has_more_commands():
+        #print("-------begin-------")
+        #print(labelParser._validline_num)
+        if not labelParsed:
+            FatalError("Parse error", labelParser.line_no())
+
+        labelParsed = labelParser.getLabel()   
+       
+    
+    parser = Parser(input_filename)
+    parsed = parser.advance()
+    
     while parser.has_more_commands():
-        print("-------begin-------")
+        #print("-------begin-------")
+        #print(parser._line_number)
+        print("Line No: ", parser._line_number, ". ")
         if not parsed:
             FatalError("Parse error", parser.line_no())
         elif parser._command_type == R_COMMAND:
-            output_file.write("{}{}{}{}{}{}\n".format(parser._opcode, parser._rs, parser._rt, parser._rd, parser._shamt, parser._funct))
+            output_file.write("{}{}{}{}{}{}{}{}\n".format("\"", parser._opcode, parser._rs, parser._rt, parser._rd, parser._shamt, parser._funct, "\", "))
         elif parser._command_type == I_COMMAND:
-            output_file.write("{}{}{}{}\n".format(parser._opcode, parser._rs, parser._rt, parser._imm))
+            output_file.write("{}{}{}{}{}{}\n".format("\"", parser._opcode, parser._rs, parser._rt, parser._imm, "\", "))
         elif parser._command_type == J_COMMAND: 
-            output_file.write("{}{}\n".format(parser._opcode, parser._jAddr))
+            output_file.write("{}{}{}{}\n".format("\"", parser._opcode, parser._jAddr, "\", "))
         parsed = parser.advance()   
+    print(jDict) 
         
         #print("Current command type ->", parser._command_type)
         #print("Line number: ", parser._line_number)

@@ -79,6 +79,43 @@ class Parser(object):
         else: 
             return 1
     
+    def getLabel(self): 
+        #print(self._validline_num)
+        self._rawline = self._file.readline()
+        self._line_number += 1
+        
+        if (self._command_type != 0) and (self._command_type != 4) :
+            #print("command_type: ", self._command_type)
+            self._validline_num += 1
+        
+        newline = self._rawline.strip() #remove whitespace
+        newline = newline.replace(" ", "")
+        newline = newline.split("#", 1)[0] #remove everything after "#"
+        splitted = newline.split("$")
+        if(newline == '' and self.has_more_commands()): 
+            self._command_type = NO_COMMAND
+            return True
+        
+        if(newline != ''):
+            if("jmp" in newline or "hal" in newline): 
+                self._command_type = J_COMMAND
+                return True
+                
+            elif(splitted[0] in iCommand): 
+                self._command_type = I_COMMAND 
+                return True
+                
+            elif(":" in newline): # if is label
+                #print("hello L")
+                self._command_type = L_COMMAND
+                jDict.update({newline[:-1]:(self._validline_num)})
+                return True
+                
+            elif(splitted[0] in rCommand):    
+                self._command_type = R_COMMAND
+                return True 
+        return False
+    
     def advance(self):
         """
         Reads the next command from the input and makes it the current
@@ -88,12 +125,12 @@ class Parser(object):
         """
         self._rawline = self._file.readline()
         self._line_number += 1
-        if (self._command_type != (NO_COMMAND or L_COMMAND)): 
+        if ((self._command_type != 0) and (self._command_type != 4)): 
             self._validline_num += 1
         newline = self._rawline.strip() #remove whitespace
         newline = newline.replace(" ", "")
         newline = newline.split("#", 1)[0] #remove everything after "#"
-        print(newline)
+        #print(newline)
         
         splitted = newline.split("$")
         
@@ -102,9 +139,9 @@ class Parser(object):
             return True
         
         if(newline != ''):
-            print("hello head")
+            #print("hello head")
             if("jmp" in newline or "hal" in newline): 
-                print("hello j")
+                #print("hello j")
                 self._command_type = J_COMMAND
                 if "hal" in newline: 
                     self._opcode = "111111"
@@ -117,7 +154,7 @@ class Parser(object):
                 return True
                 
             elif(splitted[0] in iCommand):
-                print("hello i")
+                #print("hello i")
                 self._command_type = I_COMMAND 
                 splittedString = newline.split("$")
                 #print(splittedString)
@@ -129,20 +166,31 @@ class Parser(object):
                 self._rs = "{0:05b}".format(int(secondSplit[0]))
                 
                 if(splittedString[0] in branchCommand): 
-                    self._imm = "{0:016b}".format(int(jDict.get(secondSplit[1])))
+                    print("branch imm: ", jDict.get(secondSplit[1])-self._validline_num-1)
+                    
+                    #using 2's complement for signed immediates                      
+                    
+                    if(jDict.get(secondSplit[1])-self._line_number < 0): 
+                        self._imm = (bin((1 << 16) + (jDict.get(secondSplit[1])-self._validline_num-1))[2:])
+                    else: 
+                        self._imm = (bin((1 << 16) + (jDict.get(secondSplit[1])-self._validline_num-1))[2:])
+                    if(len(self._imm) == 17):
+                        self._imm = self._imm[1:]
+                    #print(self._imm)
+
                 else: 
                     self._imm = "{0:016b}".format(int(secondSplit[1]))
                 
                 return True
                 
             elif(":" in newline): # if is label 
-                print("hello label")
+                #print("hello label")
                 self._command_type = L_COMMAND
-                jDict.update({newline[:-1]:(self._validline_num-1)})
+                #jDict.update({newline[:-1]:(self._validline_num-1)})
                 return True
                 
             elif(splitted[0] in rCommand):  
-                print("hello r")
+                #print("hello r")
                 self._command_type = R_COMMAND
                 splittedString = newline.split("$")
                 
